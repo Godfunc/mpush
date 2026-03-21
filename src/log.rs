@@ -51,13 +51,21 @@ pub fn cleanup_logs() {
     }
 }
 
+unsafe fn localtime(time: &libc::time_t, tm: &mut libc::tm) {
+    unsafe {
+        #[cfg(unix)]
+        libc::localtime_r(time, tm);
+        #[cfg(windows)]
+        libc::localtime_s(tm, time);
+    }
+}
+
 fn cutoff_date() -> String {
-    // SAFETY: libc::time and libc::localtime_r are safe to call with valid pointers
     unsafe {
         let now = libc::time(std::ptr::null_mut());
         let cutoff = now - RETAIN_DAYS * 86400;
         let mut tm: libc::tm = std::mem::zeroed();
-        libc::localtime_r(&cutoff, &mut tm);
+        localtime(&cutoff, &mut tm);
         format!(
             "{:04}-{:02}-{:02}",
             tm.tm_year + 1900,
@@ -68,11 +76,10 @@ fn cutoff_date() -> String {
 }
 
 fn local_time_parts() -> (i32, i32, i32, i32, i32, i32) {
-    // SAFETY: libc::time and libc::localtime_r are safe to call with valid pointers
     unsafe {
         let now = libc::time(std::ptr::null_mut());
         let mut tm: libc::tm = std::mem::zeroed();
-        libc::localtime_r(&now, &mut tm);
+        localtime(&now, &mut tm);
         (
             tm.tm_year + 1900,
             tm.tm_mon + 1,

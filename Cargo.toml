@@ -4,8 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ureq = { version = "2", default-features = false, features = ["native-tls"] }
-native-tls = "0.2"
+ureq = { version = "2", default-features = false, features = ["tls"] }
 libc = "0.2"
 
 [profile.release]

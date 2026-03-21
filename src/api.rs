@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::time::Duration;
 use ureq::{Agent, AgentBuilder};
 
@@ -7,9 +6,7 @@ const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 const READ_TIMEOUT: Duration = Duration::from_secs(10);
 
 fn agent() -> Agent {
-    let tls = native_tls::TlsConnector::new().expect("failed to create TLS connector");
     AgentBuilder::new()
-        .tls_connector(Arc::new(tls))
         .timeout_connect(CONNECT_TIMEOUT)
         .timeout_read(READ_TIMEOUT)
         .build()
