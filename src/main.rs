@@ -50,10 +50,11 @@ fn main() {
     };
 
     let masked_tmpl = log::mask(&args.template);
+    let multi = args.user.len() > 1;
+    let mut failures = 0u32;
 
     for user in &args.user {
         let masked_user = log::mask(user);
-
         match api::send_template_message(
             &access_token,
             user,
@@ -66,18 +67,28 @@ fn main() {
                     "{} [OK] user={masked_user} template={masked_tmpl} msgid={msgid}",
                     log::now_str()
                 ));
+                if multi {
+                    eprintln!("[OK] {masked_user} msgid={msgid}");
+                }
             }
             Err(e) => {
-                eprintln!("error: {e}");
+                failures += 1;
+                if multi {
+                    eprintln!("[ERR] {masked_user} {e}");
+                } else {
+                    eprintln!("error: {e}");
+                }
                 log::write_log(&format!(
                     "{} [ERR] user={masked_user} template={masked_tmpl} {e}",
                     log::now_str()
                 ));
-                log::cleanup_logs();
-                process::exit(1);
             }
         }
     }
 
     log::cleanup_logs();
+
+    if failures > 0 {
+        process::exit(1);
+    }
 }
